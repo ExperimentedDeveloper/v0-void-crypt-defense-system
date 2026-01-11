@@ -1,209 +1,187 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.void.crypt</groupId>
+    <!-- Project Coordinates -->
+    <groupId>com.experimenteddeveloper.voidcrypt</groupId>
     <artifactId>void-crypt-defense-system</artifactId>
-    <version>1.0.0-COMMERCIAL</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Void Crypt Defense System</name>
-    <description>Advanced cryptographic defense system with commercial licensing and obfuscation</description>
+    <name>VoidCrypt Defense System</name>
+    <description>Advanced cryptographic defense system with real-time threat detection and prevention</description>
     <url>https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system</url>
 
-    <organization>
-        <name>Void Crypt Technologies</name>
-        <url>https://voidcrypt.dev</url>
-    </organization>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.release>11</maven.compiler.release>
-        
-        <!-- Version Management -->
-        <version.maven.compiler>3.11.0</version.maven.compiler>
-        <version.maven.shade>3.5.0</version.maven.shade>
-        <version.maven.proguard>2.2.0</version.maven.proguard>
-        <version.maven.resources>3.3.1</version.maven.resources>
-        <version.maven.jar>3.3.0</version.maven.jar>
-        <version.maven.assembly>3.6.0</version.maven.assembly>
-        <version.maven.clean>3.3.2</version.maven.clean>
-        <version.maven.antrun>3.1.0</version.maven.antrun>
-        
-        <!-- Dependency Versions -->
-        <version.junit>4.13.2</version.junit>
-        <version.bouncycastle>1.76</version.bouncycastle>
-        <version.log4j>2.21.0</version.log4j>
-        <version.slf4j>2.0.7</version.slf4j>
-        
-        <!-- Build Configuration -->
-        <project.build.finalName>${project.artifactId}-${project.version}</project.build.finalName>
-        <build.timestamp>${maven.build.timestamp}</build.timestamp>
-        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
-    </properties>
-
+    <!-- Project Information -->
+    <inceptionYear>2025</inceptionYear>
     <licenses>
         <license>
-            <name>Commercial License (Skript.pl)</name>
-            <url>https://skript.pl/licenses/commercial</url>
-            <distribution>manual</distribution>
-            <comments>Licensed under Skript.pl commercial license framework</comments>
+            <name>Skript.pl License</name>
+            <url>https://skript.pl/license</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
 
     <developers>
         <developer>
-            <id>experimenteddev</id>
-            <name>ExperimentedDeveloper</name>
-            <email>dev@voidcrypt.dev</email>
+            <id>experimenteddeveloper</id>
+            <name>Experimented Developer</name>
+            <email>dev@experimenteddeveloper.com</email>
             <roles>
                 <role>Project Lead</role>
-                <role>Developer</role>
+                <role>Lead Developer</role>
             </roles>
-            <timezone>UTC</timezone>
         </developer>
     </developers>
 
+    <!-- SCM Configuration -->
     <scm>
-        <connection>scm:git:https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system.git</connection>
-        <developerConnection>scm:git:https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system.git</developerConnection>
         <url>https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system</url>
+        <connection>scm:git:https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system.git</connection>
+        <developerConnection>scm:git:git@github.com:ExperimentedDeveloper/v0-void-crypt-defense-system.git</developerConnection>
     </scm>
 
-    <dependencies>
-        <!-- Logging Framework -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${version.log4j}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${version.log4j}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>${version.log4j}</version>
-        </dependency>
+    <!-- Issue Management -->
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/ExperimentedDeveloper/v0-void-crypt-defense-system/issues</url>
+    </issueManagement>
 
+    <!-- Properties -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <!-- Dependency Versions -->
+        <junit.version>5.9.3</junit.version>
+        <bouncycastle.version>1.77</bouncycastle.version>
+        <slf4j.version>2.0.9</slf4j.version>
+        <logback.version>1.4.11</logback.version>
+
+        <!-- Plugin Versions -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
+        <proguard-maven-plugin.version>2.18.0</proguard-maven-plugin.version>
+        <proguard.version>7.3.2</proguard.version>
+
+        <!-- Build Configuration -->
+        <project.build.outputTimestamp>2026-01-11T04:44:04Z</project.build.outputTimestamp>
+        <proguard.skip>false</proguard.skip>
+    </properties>
+
+    <!-- Dependencies -->
+    <dependencies>
         <!-- Cryptography -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>${version.bouncycastle}</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>${version.bouncycastle}</version>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
         </dependency>
 
         <!-- Testing -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Skript.pl License Manager Integration -->
+        <dependency>
+            <groupId>pl.skript</groupId>
+            <artifactId>license-manager-core</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.skript</groupId>
+            <artifactId>license-manager-crypto</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>pl.skript</groupId>
+            <artifactId>license-manager-validation</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <!-- Additional Utilities -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.16.0</version>
         </dependency>
     </dependencies>
 
+    <!-- Build Configuration -->
     <build>
-        <directory>${project.basedir}/target</directory>
-        <outputDirectory>${project.build.directory}/classes</outputDirectory>
-        <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
-        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
-        <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
-
-        <resources>
-            <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.properties</include>
-                    <include>**/*.xml</include>
-                    <include>**/*.yml</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>**/*.properties</exclude>
-                    <exclude>**/*.xml</exclude>
-                    <exclude>**/*.yml</exclude>
-                </excludes>
-            </resource>
-        </resources>
-
-        <testResources>
-            <testResource>
-                <directory>${project.basedir}/src/test/resources</directory>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
-
         <plugins>
-            <!-- Maven Clean Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>${version.maven.clean}</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${project.build.directory}</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-
             <!-- Maven Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.maven.compiler}</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <release>${maven.compiler.release}</release>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <compilerId>javac</compilerId>
                     <compilerArgs>
+                        <arg>-parameters</arg>
                         <arg>-Xlint:all</arg>
-                        <arg>-Xlint:-processing</arg>
-                        <arg>-Werror</arg>
-                        <arg>--enable-preview</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
 
-            <!-- Maven Resources Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${version.maven.resources}</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                    <includeEmptyDirs>true</includeEmptyDirs>
-                </configuration>
-            </plugin>
-
-            <!-- Maven Shade Plugin - Creates uber JAR with dependencies -->
+            <!-- Maven Shade Plugin for Uber JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>${version.maven.shade}</version>
+                <version>${maven-shade-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -211,70 +189,37 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
-                            <createSourcesJar>false</createSourcesJar>
-                            <shadeSourcesContent>false</shadeSourcesContent>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <finalName>${project.artifactId}-${project.version}-shaded</finalName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>shaded</shadedClassifierName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.void.crypt.defense.VoidCryptDefenseSystem</mainClass>
-                                    <manifestEntries>
-                                        <X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
-                                        <X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
-                                        <Implementation-Title>${project.name}</Implementation-Title>
-                                        <Implementation-Version>${project.version}</Implementation-Version>
-                                        <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                                        <Build-Timestamp>${build.timestamp}</Build-Timestamp>
-                                        <Built-By>${user.name}</Built-By>
-                                        <License-Type>Commercial</License-Type>
-                                        <License-Provider>Skript.pl</License-Provider>
-                                        <Sealed>true</Sealed>
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/spring.handlers</resource>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/spring.schemas</resource>
+                                    <mainClass>com.experimenteddeveloper.voidcrypt.VoidCryptDefenseSystem</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.PluginXmlResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.Log4jPropertiesTransformer" />
                             </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <exclude>META-INF/LICENSE*</exclude>
-                                        <exclude>META-INF/NOTICE*</exclude>
-                                        <exclude>META-INF/maven/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <relocation>
-                                <pattern>org.bouncycastle</pattern>
-                                <shadedPattern>com.void.crypt.shaded.bouncycastle</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>org.slf4j</pattern>
-                                <shadedPattern>com.void.crypt.shaded.slf4j</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>org.apache.logging</pattern>
-                                <shadedPattern>com.void.crypt.shaded.logging</shadedPattern>
-                            </relocation>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>junit:junit</exclude>
+                                    <exclude>org.junit*:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+                            <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                            <minimizeJar>false</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- ProGuard Maven Plugin - Code Obfuscation -->
+            <!-- ProGuard Obfuscation Plugin -->
             <plugin>
                 <groupId>com.github.wvengen</groupId>
                 <artifactId>proguard-maven-plugin</artifactId>
-                <version>${version.maven.proguard}</version>
+                <version>${proguard-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -284,64 +229,76 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <proguardVersion>7.3.2</proguardVersion>
-                    <injar>${project.build.finalName}.jar</injar>
+                    <skip>${proguard.skip}</skip>
+                    <proguardVersion>${proguard.version}</proguardVersion>
+                    <injar>${project.build.finalName}-shaded.jar</injar>
                     <outjar>${project.build.finalName}-obfuscated.jar</outjar>
-                    <libs>
-                        <lib>${java.home}/jmods/java.base.jmod</lib>
-                    </libs>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <obfuscate>true</obfuscate>
+                    <optimize>true</optimize>
+                    <optimizationPasses>9</optimizationPasses>
+                    <verbose>false</verbose>
                     <options>
-                        <!-- Optimization and Obfuscation -->
-                        <option>-optimizationpasses 5</option>
-                        <option>-overloadaggressively</option>
-                        <option>-repackageclasses 'com.void.crypt.obfuscated'</option>
-                        <option>-allowaccessmodification</option>
-                        <option>-useuniqueclassmembernames</option>
+                        <!-- Keep main class and entry points -->
+                        <option>-keep public class com.experimenteddeveloper.voidcrypt.VoidCryptDefenseSystem { public static void main(java.lang.String[]); }</option>
                         
-                        <!-- Keep Configuration -->
-                        <option>-keep public class * { public static void main(java.lang.String[]); }</option>
-                        <option>-keep public class com.void.crypt.defense.** { public &lt;methods&gt;; public &lt;fields&gt;; }</option>
-                        <option>-keepclasseswithmembernames class * { native &lt;methods&gt;; }</option>
-                        <option>-keepclassmembernames class * { *** *(...); }</option>
+                        <!-- Keep all public classes and methods for API -->
+                        <option>-keep public class com.experimenteddeveloper.voidcrypt.api.** { public *; }</option>
+                        <option>-keep public interface com.experimenteddeveloper.voidcrypt.api.** { *; }</option>
+                        
+                        <!-- Keep license manager classes -->
+                        <option>-keep class pl.skript.license.** { *; }</option>
+                        <option>-keep class com.experimenteddeveloper.voidcrypt.licensing.** { public *; }</option>
+                        
+                        <!-- Keep annotations -->
+                        <option>-keep class * implements java.lang.annotation.Annotation { *; }</option>
+                        <option>-keepclasseswithmembers class * { @java.lang.Deprecated &lt;methods&gt;; }</option>
+                        
+                        <!-- Keep serialization classes -->
+                        <option>-keepclassmembers class * implements java.io.Serializable { static final long serialVersionUID; }</option>
+                        <option>-keepclassmembers class * implements java.io.Serializable { private static final java.io.ObjectStreamField[] serialPersistentFields; private void writeObject(java.io.ObjectOutputStream); private void readObject(java.io.ObjectInputStream); java.lang.Object writeReplace(); java.lang.Object readResolve(); }</option>
+                        
+                        <!-- Keep enum classes -->
                         <option>-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }</option>
-                        <option>-keepclasses class * extends java.io.Serializable { static final long serialVersionUID; }</option>
                         
-                        <!-- Keep Annotations -->
-                        <option>-keepattributes *Annotation*</option>
+                        <!-- Keep native methods -->
+                        <option>-keepclasseswithmembernames class * { native &lt;methods&gt;; }</option>
+                        
+                        <!-- Keep inner classes -->
+                        <option>-keepclasseswithmembernames class * { void finalize(); }</option>
+                        
+                        <!-- Keep exception information for debugging -->
+                        <option>-keepattributes SourceFile,LineNumberTable,*Annotation*,Signature</option>
+                        <option>-renamesourcefileattribute SourceFile</option>
+                        
+                        <!-- Preserve stack traces -->
                         <option>-keepattributes SourceFile,LineNumberTable</option>
-                        <option>-keepattributes InnerClasses</option>
-                        <option>-keepattributes EnclosingMethod</option>
-                        <option>-keepattributes Signature</option>
                         
-                        <!-- Keep Exception Handling -->
-                        <option>-keepattributes Exceptions</option>
+                        <!-- Keep logging configuration -->
+                        <option>-keep class ch.qos.logback.** { *; }</option>
+                        <option>-keep class org.slf4j.** { *; }</option>
                         
-                        <!-- Obfuscation -->
-                        <option>-obfuscationdictionary obfuscation-dict.txt</option>
-                        <option>-classobfuscationdictionary class-obf-dict.txt</option>
-                        <option>-packageobfuscationdictionary package-obf-dict.txt</option>
+                        <!-- Keep BouncyCastle -->
+                        <option>-keep class org.bouncycastle.** { *; }</option>
+                        <option>-dontwarn org.bouncycastle.**</option>
                         
-                        <!-- Verification and Shrinking -->
-                        <option>-verbose</option>
-                        <option>-dontskipnonpubliclibraryclasses</option>
-                        <option>-dontskipnonpubliclibraryclassmembers</option>
-                        <option>-keepdirectories</option>
+                        <!-- Preserve parameter names for reflection-based operations -->
+                        <option>-keepattributes LocalVariableTypeTable,LocalVariableTable</option>
                         
-                        <!-- Preverification -->
-                        <option>-dontpreverify</option>
+                        <!-- Suppress warnings for common external dependencies -->
+                        <option>-dontwarn java.**</option>
+                        <option>-dontwarn javax.**</option>
+                        <option>-dontwarn sun.**</option>
                         
-                        <!-- Logging -->
-                        <option>-printmapping mapping.txt</option>
-                        <option>-printseeds seeds.txt</option>
-                        <option>-printusage unused.txt</option>
+                        <!-- Aggressive obfuscation for sensitive classes -->
+                        <option>-repackageclasses 'com/experimenteddeveloper/voidcrypt/obf'</option>
                     </options>
-                    <injarNotExistsSkip>true</injarNotExistsSkip>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>net.sf.proguard</groupId>
                         <artifactId>proguard-base</artifactId>
-                        <version>7.3.2</version>
+                        <version>${proguard.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -350,184 +307,150 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven.jar}</version>
+                <version>${maven-jar-plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.void.crypt.defense.VoidCryptDefenseSystem</mainClass>
+                            <mainClass>com.experimenteddeveloper.voidcrypt.VoidCryptDefenseSystem</mainClass>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
-                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
-                            <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
-                            <Build-Timestamp>${build.timestamp}</Build-Timestamp>
+                            <Implementation-Vendor>Experimented Developer</Implementation-Vendor>
                             <Built-By>${user.name}</Built-By>
-                            <License-Type>Commercial</License-Type>
-                            <License-Provider>Skript.pl</License-Provider>
-                            <License-URL>https://skript.pl/licenses/commercial</License-URL>
-                            <Created-By>Apache Maven ${maven.version}</Created-By>
-                            <Sealed>true</Sealed>
-                            <X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
-                            <X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
-                            <Specification-Title>${project.name}</Specification-Title>
-                            <Specification-Version>${project.version}</Specification-Version>
-                            <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+                            <Build-Timestamp>${project.build.outputTimestamp}</Build-Timestamp>
+                            <License>Skript.pl License</License>
                         </manifestEntries>
                     </archive>
-                    <finalName>${project.build.finalName}</finalName>
                 </configuration>
             </plugin>
 
-            <!-- Maven Assembly Plugin -->
+            <!-- Maven Surefire Plugin for Testing -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>${version.maven.assembly}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>com.void.crypt.defense.VoidCryptDefenseSystem</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptors>
-                                <descriptor>src/assembly/distribution.xml</descriptor>
-                            </descriptors>
-                            <finalName>${project.build.finalName}</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Maven Antrun Plugin - Skript.pl License Integration -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>${version.maven.antrun}</version>
-                <executions>
-                    <execution>
-                        <id>validate-license</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="========================================" />
-                                <echo message="Void Crypt Defense System - Commercial Build" />
-                                <echo message="========================================" />
-                                <echo message="Project: ${project.name}" />
-                                <echo message="Version: ${project.version}" />
-                                <echo message="Licensed under: Skript.pl Commercial License" />
-                                <echo message="Build Timestamp: ${build.timestamp}" />
-                                <echo message="========================================" />
-                                <available file="LICENSE-SKRIPT.txt" property="license.exists" />
-                                <fail unless="license.exists" message="ERROR: LICENSE-SKRIPT.txt not found. Commercial build requires valid Skript.pl license file." />
-                                <echo message="License validation: PASSED" />
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-license-headers</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${project.build.outputDirectory}/META-INF" />
-                                <echo file="${project.build.outputDirectory}/META-INF/LICENSE-INFO.txt">
-Void Crypt Defense System v${project.version}
-============================================
-Commercial Edition - Skript.pl Licensed
-
-Build Date: ${build.timestamp}
-Organization: ${project.organization.name}
-
-This software is licensed under the Skript.pl Commercial License Framework.
-Unauthorized distribution, modification, or use is prohibited.
-
-For license information, visit: https://skript.pl/licenses/commercial
-                                </echo>
-                                <echo message="License metadata generated successfully" />
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>obfuscation-summary</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="========================================" />
-                                <echo message="Build Complete - Commercial Release" />
-                                <echo message="========================================" />
-                                <echo message="Artifacts:" />
-                                <echo message="  - ${project.build.finalName}.jar (Shaded)" />
-                                <echo message="  - ${project.build.finalName}-obfuscated.jar (Obfuscated)" />
-                                <echo message="========================================" />
-                                <echo message="Security Applied:" />
-                                <echo message="  ✓ Maven Shade Plugin (Dependency bundling)" />
-                                <echo message="  ✓ ProGuard Obfuscation (Code protection)" />
-                                <echo message="  ✓ Skript.pl License Integration" />
-                                <echo message="  ✓ Commercial Grade Manifest" />
-                                <echo message="========================================" />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*TestCase.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                </configuration>
             </plugin>
         </plugins>
 
+        <!-- Plugin Management -->
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.3.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>4.0.0-M13</version>
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <!-- Source and Resource Directories -->
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.yml</include>
+                    <include>**/*.yaml</include>
+                </includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
     </build>
 
+    <!-- Profiles for Different Build Scenarios -->
     <profiles>
-        <!-- Commercial Release Profile -->
+        <!-- Development Profile -->
         <profile>
-            <id>commercial-release</id>
+            <id>dev</id>
             <activation>
-                <property>
-                    <name>commercial.release</name>
-                    <value>true</value>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+                <maven.test.skip>false</maven.test.skip>
+                <proguard.skip>true</proguard.skip>
+            </properties>
+        </profile>
+
+        <!-- Production Profile with Full Obfuscation -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <maven.test.skip>false</maven.test.skip>
+                <proguard.skip>false</proguard.skip>
+            </properties>
+        </profile>
+
+        <!-- Release Profile -->
+        <profile>
+            <id>release</id>
+            <properties>
+                <maven.test.skip>false</maven.test.skip>
+                <proguard.skip>false</proguard.skip>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>${version.maven.antrun}</version>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.0</version>
                         <executions>
                             <execution>
-                                <phase>package</phase>
+                                <id>attach-sources</id>
                                 <goals>
-                                    <goal>run</goal>
+                                    <goal>jar-no-fork</goal>
                                 </goals>
-                                <configuration>
-                                    <target>
-                                        <echo message="COMMERCIAL RELEASE BUILD ACTIVATED" />
-                                        <echo message="Artifact signing and commercial packaging enabled" />
-                                    </target>
-                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.6.3</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -535,22 +458,12 @@ For license information, visit: https://skript.pl/licenses/commercial
             </build>
         </profile>
 
-        <!-- Development Profile -->
-        <profile>
-            <id>development</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <maven.test.skip>false</maven.test.skip>
-            </properties>
-        </profile>
-
         <!-- Testing Profile -->
         <profile>
             <id>test</id>
             <properties>
                 <maven.test.skip>false</maven.test.skip>
+                <proguard.skip>true</proguard.skip>
             </properties>
         </profile>
     </profiles>
