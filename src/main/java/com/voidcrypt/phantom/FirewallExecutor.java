@@ -1,36 +1,31 @@
 package com.voidcrypt.phantom;
 
 import com.voidcrypt.VoidCryptPlugin;
+import com.voidcrypt.security.SecurityValidator;
 import org.bukkit.Bukkit;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
+import java.util.logging.Level;
 
 /**
- * Módulo 5B: Ejecutor de Firewall
- * Interactúa con el sistema operativo para bloquear IPs maliciosas
+ * Module 5B: Firewall Executor
+ * Interacts with OS to block malicious IPs
  */
 public class FirewallExecutor {
 
     private final VoidCryptPlugin plugin;
     private final OperatingSystem os;
     private final Set<String> bannedIPs;
-    
-    // Regex para sanitización de IP - Solo permite dígitos y puntos
-    private static final Pattern IP_SANITIZE = Pattern.compile("[^0-9.]");
-    private static final Pattern IP_VALIDATE = Pattern.compile(
-        "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.){3}(25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)$"
-    );
 
     public FirewallExecutor(VoidCryptPlugin plugin) {
         this.plugin = plugin;
         this.os = detectOS();
         this.bannedIPs = ConcurrentHashMap.newKeySet();
         
-        plugin.getLogger().info("Firewall Executor inicializado para: " + os);
+        plugin.getLogger().info("Firewall Executor initialized for: " + os);
     }
 
     private OperatingSystem detectOS() {
@@ -47,47 +42,53 @@ public class FirewallExecutor {
     }
 
     /**
-     * Ejecuta un bloqueo de IP a nivel de firewall del SO
-     * ADVERTENCIA: Requiere permisos elevados
+     * Executes IP ban at OS firewall level
+     * WARNING: Requires elevated permissions
      */
     public boolean executeBan(String ip) {
-        // Sanitizar IP - eliminar todo excepto dígitos y puntos
-        String sanitizedIP = IP_SANITIZE.matcher(ip).replaceAll("");
+        String validatedIP = SecurityValidator.validateIP(ip);
         
-        // Validar formato de IP
-        if (!IP_VALIDATE.matcher(sanitizedIP).matches()) {
-            plugin.getLogger().warning("IP inválida rechazada: " + ip);
+        if (validatedIP == null) {
+            plugin.getLogger().warning("Invalid IP rejected for firewall ban: " + 
+                SecurityValidator.sanitizeForLog(ip));
             return false;
         }
         
-        // Evitar duplicados
-        if (bannedIPs.contains(sanitizedIP)) {
+        if (!SecurityValidator.checkRateLimit("firewall:" + validatedIP)) {
+            plugin.getLogger().warning("Rate limit exceeded for firewall operations on: " + validatedIP);
+            return false;
+        }
+        
+        // Avoid duplicates
+        if (bannedIPs.contains(validatedIP)) {
             return true;
         }
         
-        // Verificar si el auto-firewall está habilitado
+        // Check if auto-firewall is enabled
         if (!plugin.getConfig().getBoolean("phantom-ports.auto-firewall", false)) {
-            plugin.getLogger().info("Auto-firewall deshabilitado. IP marcada: " + sanitizedIP);
-            bannedIPs.add(sanitizedIP);
+            plugin.getLogger().info("Auto-firewall disabled. IP marked: " + validatedIP);
+            bannedIPs.add(validatedIP);
             return false;
         }
         
-        String command = buildCommand(sanitizedIP);
+        String escapedIP = SecurityValidator.escapeForShell(validatedIP);
+        String command = buildCommand(escapedIP);
         if (command == null) {
-            plugin.getLogger().warning("Sistema operativo no soportado para firewall");
+            plugin.getLogger().warning("Unsupported operating system for firewall");
             return false;
         }
         
-        // Ejecutar comando de forma asíncrona
+        // Execute command asynchronously
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                executeCommand(command, sanitizedIP);
+                executeCommand(command, validatedIP);
             } catch (Exception e) {
-                plugin.getLogger().severe("Error ejecutando comando de firewall: " + e.getMessage());
+                plugin.getLogger().severe("Error executing firewall command: " + e.getMessage());
             }
         });
         
-        bannedIPs.add(sanitizedIP);
+        bannedIPs.add(validatedIP);
+        plugin.auditLog(Level.WARNING, "FIREWALL_BAN", "IP: " + validatedIP);
         return true;
     }
 
@@ -114,7 +115,7 @@ public class FirewallExecutor {
             pb.redirectErrorStream(true);
             Process process = pb.start();
             
-            // Leer salida
+            // Read output
             StringBuilder output = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
@@ -127,39 +128,41 @@ public class FirewallExecutor {
             int exitCode = process.waitFor();
             
             if (exitCode == 0) {
-                plugin.getLogger().info("✓ IP bloqueada en firewall: " + ip);
-                plugin.alert("IP bloqueada a nivel de SO: " + ip);
+                plugin.getLogger().info("[OK] IP blocked in firewall: " + ip);
+                plugin.alert("IP blocked at OS level: " + ip);
             } else {
-                plugin.getLogger().warning("Error al bloquear IP (código " + exitCode + "): " + output);
+                plugin.getLogger().warning("Error blocking IP (code " + exitCode + "): " + output);
             }
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Excepción ejecutando firewall: " + e.getMessage());
+            plugin.getLogger().severe("Exception executing firewall: " + e.getMessage());
         }
     }
 
     /**
-     * Desbloquea una IP del firewall
+     * Unblocks an IP from firewall
      */
     public boolean executeUnban(String ip) {
-        String sanitizedIP = IP_SANITIZE.matcher(ip).replaceAll("");
+        String validatedIP = SecurityValidator.validateIP(ip);
         
-        if (!IP_VALIDATE.matcher(sanitizedIP).matches()) {
+        if (validatedIP == null) {
             return false;
         }
         
-        String command = buildUnbanCommand(sanitizedIP);
+        String escapedIP = SecurityValidator.escapeForShell(validatedIP);
+        String command = buildUnbanCommand(escapedIP);
         if (command == null) return false;
         
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                executeCommand(command, sanitizedIP);
-                bannedIPs.remove(sanitizedIP);
+                executeCommand(command, validatedIP);
+                bannedIPs.remove(validatedIP);
             } catch (Exception e) {
-                plugin.getLogger().severe("Error desbloqueando IP: " + e.getMessage());
+                plugin.getLogger().severe("Error unbanning IP: " + e.getMessage());
             }
         });
         
+        plugin.auditLog(Level.INFO, "FIREWALL_UNBAN", "IP: " + validatedIP);
         return true;
     }
 

@@ -1,9 +1,7 @@
 package com.voidcrypt.gui;
 
 import com.voidcrypt.VoidCryptPlugin;
-import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
@@ -15,7 +13,8 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /**
- * Sistema de notificaciones interactivas para admins
+ * Interactive notification system for admins
+ * Translated to English
  */
 public class NotificationManager {
 
@@ -30,7 +29,7 @@ public class NotificationManager {
     }
 
     /**
-     * Envía una notificación a todos los admins
+     * Sends a notification to all admins
      */
     public void notifyAdmins(NotificationType type, String message, String... actions) {
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -41,16 +40,16 @@ public class NotificationManager {
     }
 
     /**
-     * Envía una notificación a un jugador específico
+     * Sends a notification to a specific player
      */
     public void sendNotification(Player player, NotificationType type, String message, String... actions) {
-        // Prefix según tipo
+        // Prefix based on type
         String prefix = switch (type) {
-            case INFO -> ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "ℹ" + ChatColor.DARK_GRAY + "] ";
-            case WARNING -> ChatColor.DARK_GRAY + "[" + ChatColor.YELLOW + "⚠" + ChatColor.DARK_GRAY + "] ";
-            case ALERT -> ChatColor.DARK_GRAY + "[" + ChatColor.RED + "⚡" + ChatColor.DARK_GRAY + "] ";
-            case CRITICAL -> ChatColor.DARK_GRAY + "[" + ChatColor.DARK_RED + "☠" + ChatColor.DARK_GRAY + "] ";
-            case SUCCESS -> ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "✔" + ChatColor.DARK_GRAY + "] ";
+            case INFO -> ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "i" + ChatColor.DARK_GRAY + "] ";
+            case WARNING -> ChatColor.DARK_GRAY + "[" + ChatColor.YELLOW + "!" + ChatColor.DARK_GRAY + "] ";
+            case ALERT -> ChatColor.DARK_GRAY + "[" + ChatColor.RED + "!!" + ChatColor.DARK_GRAY + "] ";
+            case CRITICAL -> ChatColor.DARK_GRAY + "[" + ChatColor.DARK_RED + "!!!" + ChatColor.DARK_GRAY + "] ";
+            case SUCCESS -> ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "+" + ChatColor.DARK_GRAY + "] ";
         };
         
         ChatColor messageColor = switch (type) {
@@ -61,10 +60,10 @@ public class NotificationManager {
             case SUCCESS -> ChatColor.GREEN;
         };
         
-        // Mensaje principal
+        // Main message
         TextComponent mainMessage = new TextComponent(prefix + messageColor + message);
         
-        // Añadir acciones clickeables
+        // Add clickable actions
         if (actions.length > 0) {
             mainMessage.addExtra("\n");
             for (int i = 0; i < actions.length; i += 2) {
@@ -77,7 +76,7 @@ public class NotificationManager {
                     );
                     actionBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
                     actionBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
-                        new Text(ChatColor.GRAY + "Click para: " + ChatColor.WHITE + command)));
+                        new Text(ChatColor.GRAY + "Click to: " + ChatColor.WHITE + command)));
                     mainMessage.addExtra(actionBtn);
                 }
             }
@@ -85,7 +84,7 @@ public class NotificationManager {
         
         player.spigot().sendMessage(mainMessage);
         
-        // Sonido según tipo
+        // Sound based on type
         Sound sound = switch (type) {
             case INFO -> Sound.BLOCK_NOTE_BLOCK_PLING;
             case WARNING -> Sound.BLOCK_NOTE_BLOCK_BASS;
@@ -96,63 +95,70 @@ public class NotificationManager {
         
         player.playSound(player.getLocation(), sound, 0.5f, 1.0f);
         
-        // Guardar en pendientes
+        // Save to pending
         Notification notif = new Notification(type, message, System.currentTimeMillis());
         pendingNotifications.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>()).add(notif);
         
-        // Limpiar notificaciones antiguas (más de 5 minutos)
+        // Clean old notifications (older than 5 minutes)
         cleanOldNotifications(player.getUniqueId());
     }
 
     /**
-     * Envía alerta de sesión sospechosa
+     * Simple notification method for alerts
+     */
+    public void sendNotification(String message) {
+        notifyAdmins(NotificationType.ALERT, message);
+    }
+
+    /**
+     * Sends suspicious session alert
      */
     public void alertSuspiciousSession(String playerName, String ip, String reason) {
         notifyAdmins(NotificationType.ALERT, 
-            "Sesión sospechosa: " + ChatColor.WHITE + playerName + ChatColor.RED + " (" + ip + ")",
-            "Investigar", "/voidcrypt investigate " + playerName,
-            "Kick", "/voidcrypt kick " + playerName + " Actividad sospechosa",
+            "Suspicious session: " + ChatColor.WHITE + playerName + ChatColor.RED + " (" + ip + ")",
+            "Investigate", "/voidcrypt investigate " + playerName,
+            "Kick", "/voidcrypt kick " + playerName + " Suspicious activity",
             "Ban", "/voidcrypt ban " + playerName);
     }
 
     /**
-     * Envía alerta de tráfico anómalo
+     * Sends high traffic alert
      */
     public void alertHighTraffic(int packetsPerSecond) {
         notifyAdmins(NotificationType.WARNING,
-            "Tráfico elevado detectado: " + ChatColor.WHITE + packetsPerSecond + " pkt/s",
-            "Ver Estado", "/voidcrypt status",
+            "High traffic detected: " + ChatColor.WHITE + packetsPerSecond + " pkt/s",
+            "View Status", "/voidcrypt status",
             "Panel", "/voidcrypt gui security");
     }
 
     /**
-     * Envía alerta de integridad comprometida
+     * Sends integrity breach alert
      */
     public void alertIntegrityBreach(String pluginName) {
         notifyAdmins(NotificationType.CRITICAL,
-            "Integridad comprometida: " + ChatColor.WHITE + pluginName,
-            "Escanear", "/voidcrypt scan",
+            "Integrity compromised: " + ChatColor.WHITE + pluginName,
+            "Scan", "/voidcrypt scan",
             "Lockdown", "/voidcrypt lockdown on");
     }
 
     /**
-     * Envía alerta de honeypot activado
+     * Sends honeypot triggered alert
      */
     public void alertHoneypotTriggered(String ip, int port) {
         notifyAdmins(NotificationType.ALERT,
-            "Honeypot activado desde " + ChatColor.WHITE + ip + ":" + port,
+            "Honeypot triggered from " + ChatColor.WHITE + ip + ":" + port,
             "Ban IP", "/voidcrypt ban " + ip,
-            "Ver Firewall", "/voidcrypt gui firewall");
+            "View Firewall", "/voidcrypt gui firewall");
     }
 
     public void toggleMute(Player player) {
         UUID uuid = player.getUniqueId();
         if (mutedPlayers.contains(uuid)) {
             mutedPlayers.remove(uuid);
-            player.sendMessage(ChatColor.GREEN + "Notificaciones activadas.");
+            player.sendMessage(ChatColor.GREEN + "Notifications enabled.");
         } else {
             mutedPlayers.add(uuid);
-            player.sendMessage(ChatColor.YELLOW + "Notificaciones silenciadas.");
+            player.sendMessage(ChatColor.YELLOW + "Notifications muted.");
         }
     }
 

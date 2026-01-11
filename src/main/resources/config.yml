@@ -1,9 +1,12 @@
-# VoidCrypt Defense System - Configuración Principal
+# VoidCrypt Defense System - Main Configuration
+# All text has been translated to English
 
 void-handshake:
   enabled: true
-  difficulty: 2 # 1 = Simple, 5 = Difícil (Coste computacional alto para bots)
-  timeout-ticks: 60 # 3 segundos
+  difficulty: 2 # 1 = Simple, 5 = Hard (High computational cost for bots)
+  timeout-ms: 60000 # 60 seconds (was 3 seconds - too short)
+  # IMPORTANT: You MUST change this key! Plugin will NOT start with default key.
+  # Key must be at least 16 characters and complex.
   secret-key: "CHANGE_THIS_SECRET_KEY_NOW"
 
 shadow-session:
@@ -22,18 +25,23 @@ integrity-scanner:
   scan-on-startup: true
   scan-interval-minutes: 30
   known-good-checksums: []
-  # Ejemplo:
+  # Example:
   # - "EssentialsX.jar:a1b2c3d4e5f6..."
 
 phantom-ports:
   active: true
-  auto-firewall: false # Advertencia: Requiere permisos de SO
+  auto-firewall: false # Warning: Requires OS-level permissions
   honeypot-channels:
     - "voidcrypt:port80"
     - "voidcrypt:port443"
     - "voidcrypt:admin"
 
+# Rate limiting settings
+rate-limiting:
+  max-attempts-per-minute: 30
+  lockout-duration-minutes: 5
+
 messages:
-  kick-handshake-failed: "&cConexión rechazada."
-  kick-session-corrupt: "&cSesión inválida."
+  kick-handshake-failed: "&cConnection rejected."
+  kick-session-corrupt: "&cInvalid session."
   alert-prefix: "&8[&4VoidCrypt&8] &c"

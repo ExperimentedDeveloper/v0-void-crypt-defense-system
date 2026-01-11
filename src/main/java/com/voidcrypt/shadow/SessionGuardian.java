@@ -1,6 +1,7 @@
 package com.voidcrypt.shadow;
 
 import com.voidcrypt.VoidCryptPlugin;
+import com.voidcrypt.security.SecurityValidator;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,23 +20,18 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
+import java.util.logging.Level;
 
 /**
- * Módulo 2B: Guardián de Sesiones
- * Monitorea la integridad de las sesiones de jugadores
+ * Module 2B: Session Guardian
+ * Monitors player session integrity
  */
 public class SessionGuardian implements Listener {
 
     private final VoidCryptPlugin plugin;
     
-    // Almacén thread-safe de huellas de sesión
+    // Thread-safe session fingerprint storage
     private final Map<UUID, SessionFingerprint> sessionStore;
-    
-    // Regex para validación IPv4
-    private static final Pattern IPV4_PATTERN = Pattern.compile(
-        "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
-    );
 
     public SessionGuardian(VoidCryptPlugin plugin) {
         this.plugin = plugin;
@@ -46,30 +42,36 @@ public class SessionGuardian implements Listener {
     public void onPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
         UUID uuid = event.getUniqueId();
         InetAddress address = event.getAddress();
-        String ip = address != null ? address.getHostAddress() : "unknown";
+        String ip = address != null ? address.getHostAddress() : null;
         
-        // Validar formato de IP
-        if (!isValidIPv4(ip)) {
-            plugin.getLogger().warning("IP inválida detectada: " + ip);
-            ip = "0.0.0.0";
+        String validatedIP = SecurityValidator.validateIP(ip);
+        if (validatedIP == null) {
+            plugin.getLogger().warning("Invalid IP detected during login: " + 
+                SecurityValidator.sanitizeForLog(ip));
+            event.disallow(
+                AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                ChatColor.RED + "Connection error."
+            );
+            return;
         }
         
-        // Verificar si ya existe una sesión activa con diferente IP
+        // Check for existing session with different IP
         if (plugin.getConfig().getBoolean("shadow-session.enforce-ip-lock", true)) {
             SessionFingerprint existing = sessionStore.get(uuid);
             
-            if (existing != null && !existing.validateIP(ip)) {
-                handleSessionSwap(event, uuid, existing.getBoundIP(), ip);
+            if (existing != null && !existing.validateIP(validatedIP)) {
+                handleSessionSwap(event, uuid, existing.getBoundIP(), validatedIP);
                 return;
             }
         }
         
-        // Crear nueva huella de sesión
-        // El protocolVersion se establecerá después en PlayerJoinEvent
-        SessionFingerprint fingerprint = new SessionFingerprint(uuid, ip, -1);
+        // Create new session fingerprint
+        SessionFingerprint fingerprint = new SessionFingerprint(uuid, validatedIP, -1);
         sessionStore.put(uuid, fingerprint);
         
-        plugin.getLogger().fine("Sesión creada para " + event.getName() + " desde " + ip);
+        plugin.getLogger().fine("Session created for " + event.getName() + " from " + validatedIP);
+        plugin.auditLog(Level.INFO, "SESSION_CREATED", 
+            "Player: " + event.getName() + " IP: " + validatedIP);
     }
 
     @EventHandler
@@ -78,41 +80,47 @@ public class SessionGuardian implements Listener {
         SessionFingerprint fingerprint = sessionStore.get(player.getUniqueId());
         
         if (fingerprint == null) {
-            // Crear huella si no existe (caso raro)
+            // Create fingerprint if doesn't exist (rare case)
             String ip = player.getAddress() != null ? 
                 player.getAddress().getAddress().getHostAddress() : "unknown";
-            fingerprint = new SessionFingerprint(player.getUniqueId(), ip, player.getProtocolVersion());
+            String validatedIP = SecurityValidator.validateIP(ip);
+            fingerprint = new SessionFingerprint(player.getUniqueId(), 
+                validatedIP != null ? validatedIP : "unknown", 
+                player.getProtocolVersion());
             sessionStore.put(player.getUniqueId(), fingerprint);
         }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Mantener la sesión por un tiempo para detectar reconexiones rápidas
+        // Keep session for a while to detect quick reconnections
         UUID uuid = event.getPlayer().getUniqueId();
         
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-            // Limpiar después de 5 minutos si no reconecta
+            // Clean up after 5 minutes if not reconnected
             Player player = Bukkit.getPlayer(uuid);
             if (player == null || !player.isOnline()) {
                 sessionStore.remove(uuid);
             }
-        }, 6000L); // 5 minutos
+        }, 6000L); // 5 minutes
     }
 
     private void handleSessionSwap(AsyncPlayerPreLoginEvent event, UUID uuid, 
                                     String originalIP, String newIP) {
-        plugin.alert("¡Cambio de IP detectado! Jugador: " + event.getName() + 
-                     " | Original: " + originalIP + " | Nueva: " + newIP);
+        plugin.alert("IP change detected! Player: " + event.getName() + 
+                     " | Original: " + originalIP + " | New: " + newIP);
+        
+        plugin.auditLog(Level.WARNING, "SESSION_SWAP_DETECTED",
+            "Player: " + event.getName() + " Original: " + originalIP + " New: " + newIP);
         
         if (plugin.getConfig().getBoolean("shadow-session.ban-on-swap", true)) {
             int banMinutes = plugin.getConfig().getInt("shadow-session.ban-duration-minutes", 60);
             
-            // Banear temporalmente
+            // Temporary ban
             Date expiry = Date.from(Instant.now().plus(Duration.ofMinutes(banMinutes)));
             Bukkit.getBanList(BanList.Type.IP).addBan(
                 newIP,
-                "VoidCrypt: Sesión corrupta detectada",
+                "VoidCrypt: Corrupted session detected",
                 expiry,
                 "VoidCrypt System"
             );
@@ -121,11 +129,11 @@ public class SessionGuardian implements Listener {
                 AsyncPlayerPreLoginEvent.Result.KICK_BANNED,
                 ChatColor.translateAlternateColorCodes('&',
                     plugin.getConfig().getString("messages.kick-session-corrupt", 
-                        "&cSesión inválida."))
+                        "&cInvalid session."))
             );
         }
         
-        // Marcar sesión original como comprometida
+        // Mark original session as compromised
         SessionFingerprint fingerprint = sessionStore.get(uuid);
         if (fingerprint != null) {
             fingerprint.incrementSuspicion(10);
@@ -133,8 +141,8 @@ public class SessionGuardian implements Listener {
     }
 
     /**
-     * Valida IP contra la huella almacenada
-     * Llamado por otros módulos para verificar integridad
+     * Validates IP against stored fingerprint
+     * Called by other modules to verify integrity
      */
     public boolean validateSession(Player player) {
         SessionFingerprint fingerprint = sessionStore.get(player.getUniqueId());
@@ -147,21 +155,21 @@ public class SessionGuardian implements Listener {
     }
 
     /**
-     * Obtiene la huella de sesión de un jugador
+     * Gets a player's session fingerprint
      */
     public SessionFingerprint getFingerprint(UUID uuid) {
         return sessionStore.get(uuid);
     }
 
     /**
-     * Obtiene todas las sesiones activas
+     * Gets all active sessions
      */
     public Map<UUID, SessionFingerprint> getAllSessions() {
         return Map.copyOf(sessionStore);
     }
 
     /**
-     * Marca una sesión para investigación
+     * Marks a session for investigation
      */
     public void flagForInvestigation(UUID uuid) {
         SessionFingerprint fingerprint = sessionStore.get(uuid);
@@ -171,17 +179,13 @@ public class SessionGuardian implements Listener {
     }
 
     /**
-     * Incrementa sospecha de una sesión
+     * Increments session suspicion
      */
     public void addSuspicion(UUID uuid, int level) {
         SessionFingerprint fingerprint = sessionStore.get(uuid);
         if (fingerprint != null) {
             fingerprint.incrementSuspicion(level);
         }
-    }
-
-    private boolean isValidIPv4(String ip) {
-        return ip != null && IPV4_PATTERN.matcher(ip).matches();
     }
 
     public int getActiveSessionCount() {

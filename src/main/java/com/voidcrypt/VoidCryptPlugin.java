@@ -11,6 +11,7 @@ import com.voidcrypt.radar.ThreatRadarRenderer;
 import com.voidcrypt.radar.TrafficAnalyzer;
 import com.voidcrypt.scanner.ConfigurationAuditor;
 import com.voidcrypt.scanner.FileIntegrityChecker;
+import com.voidcrypt.security.SecurityValidator;
 import com.voidcrypt.shadow.SessionGuardian;
 import com.voidcrypt.zte.CryptographicChallenge;
 import com.voidcrypt.zte.HandshakeInterceptor;
@@ -24,7 +25,7 @@ public class VoidCryptPlugin extends JavaPlugin {
     private static VoidCryptPlugin instance;
     private ProtocolManager protocolManager;
     
-    // Módulos
+    // Modules
     private CryptographicChallenge cryptographicChallenge;
     private HandshakeInterceptor handshakeInterceptor;
     private SessionGuardian sessionGuardian;
@@ -41,12 +42,24 @@ public class VoidCryptPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         
-        // Guardar configuración por defecto
+        // Save default configuration
         saveDefaultConfig();
         
-        // Verificar dependencia ProtocolLib
+        String secretKey = getConfig().getString("void-handshake.secret-key", "DEFAULT_KEY");
+        if (!SecurityValidator.isSecretKeyValid(secretKey)) {
+            getLogger().severe("==============================================");
+            getLogger().severe("CRITICAL SECURITY ERROR!");
+            getLogger().severe("You MUST change the secret-key in config.yml");
+            getLogger().severe("The key must be at least 16 characters and complex.");
+            getLogger().severe("VoidCrypt will NOT enable until this is fixed.");
+            getLogger().severe("==============================================");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Check ProtocolLib dependency
         if (!checkProtocolLib()) {
-            getLogger().severe("ProtocolLib no encontrado! VoidCrypt requiere ProtocolLib.");
+            getLogger().severe("ProtocolLib not found! VoidCrypt requires ProtocolLib.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -56,22 +69,26 @@ public class VoidCryptPlugin extends JavaPlugin {
         logManager = new LogManager(this);
         notificationManager = new NotificationManager(this);
         
-        // Inicializar módulos
+        // Initialize modules
         initializeModules();
         
-        // Registrar comandos
+        // Register commands
         getCommand("voidcrypt").setExecutor(new VoidCryptCommand(this));
         
-        // Escaneo inicial si está habilitado
-        if (getConfig().getBoolean("integrity-scanner.scan-on-startup", true)) {
+        if (getConfig().getBoolean("integrity-scanner.scan-on-startup", true) && fileIntegrityChecker != null) {
             Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
                 fileIntegrityChecker.scanPlugins();
-                configurationAuditor.auditServerProperties();
+                if (configurationAuditor != null) {
+                    configurationAuditor.auditServerProperties();
+                }
             });
         }
         
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, 
+            SecurityValidator::cleanupRateLimits, 6000L, 6000L);
+        
         logStartup();
-        logManager.info("Sistema iniciado correctamente", "Core");
+        logManager.info("System started successfully", "Core");
     }
 
     @Override
@@ -79,7 +96,7 @@ public class VoidCryptPlugin extends JavaPlugin {
         if (protocolManager != null) {
             protocolManager.removePacketListeners(this);
         }
-        getLogger().info("VoidCrypt Defense System desactivado.");
+        getLogger().info("VoidCrypt Defense System disabled.");
     }
 
     private boolean checkProtocolLib() {
@@ -87,42 +104,42 @@ public class VoidCryptPlugin extends JavaPlugin {
     }
 
     private void initializeModules() {
-        // Módulo 1: Void Handshake Protocol
+        // Module 1: Void Handshake Protocol
         if (getConfig().getBoolean("void-handshake.enabled", true)) {
             cryptographicChallenge = new CryptographicChallenge(this);
             handshakeInterceptor = new HandshakeInterceptor(this, protocolManager, cryptographicChallenge);
-            getLogger().info("✓ Módulo Void Handshake Protocol activado");
+            getLogger().info("[OK] Void Handshake Protocol module enabled");
         }
         
-        // Módulo 2: Shadow Session
+        // Module 2: Shadow Session
         sessionGuardian = new SessionGuardian(this);
         Bukkit.getPluginManager().registerEvents(sessionGuardian, this);
-        getLogger().info("✓ Módulo Shadow Session activado");
+        getLogger().info("[OK] Shadow Session module enabled");
         
-        // Módulo 3: Threat Radar
+        // Module 3: Threat Radar
         trafficAnalyzer = new TrafficAnalyzer(this, protocolManager);
         threatRadarRenderer = new ThreatRadarRenderer(this, trafficAnalyzer, sessionGuardian);
-        getLogger().info("✓ Módulo Threat Radar activado");
+        getLogger().info("[OK] Threat Radar module enabled");
         
-        // Módulo 4: Core Integrity Scanner
+        // Module 4: Core Integrity Scanner
         if (getConfig().getBoolean("integrity-scanner.enabled", true)) {
             fileIntegrityChecker = new FileIntegrityChecker(this);
             configurationAuditor = new ConfigurationAuditor(this);
-            getLogger().info("✓ Módulo Core Integrity Scanner activado");
+            getLogger().info("[OK] Core Integrity Scanner module enabled");
         }
         
-        // Módulo 5: Phantom Ports
+        // Module 5: Phantom Ports
         if (getConfig().getBoolean("phantom-ports.active", true)) {
             firewallExecutor = new FirewallExecutor(this);
             phantomPortListener = new PhantomPortListener(this, protocolManager, firewallExecutor, sessionGuardian);
-            getLogger().info("✓ Módulo Phantom Ports activado");
+            getLogger().info("[OK] Phantom Ports module enabled");
         }
     }
 
     private void logStartup() {
         getLogger().info("╔══════════════════════════════════════╗");
         getLogger().info("║     VoidCrypt Defense System v1.0    ║");
-        getLogger().info("║      Sistema de Defensa Activo       ║");
+        getLogger().info("║        Defense System Active         ║");
         getLogger().info("╚══════════════════════════════════════╝");
     }
 
@@ -150,6 +167,10 @@ public class VoidCryptPlugin extends JavaPlugin {
         return configurationAuditor;
     }
 
+    public FirewallExecutor getFirewallExecutor() {
+        return firewallExecutor;
+    }
+
     public LogManager getLogManager() {
         return logManager;
     }
@@ -164,12 +185,21 @@ public class VoidCryptPlugin extends JavaPlugin {
         Bukkit.getOnlinePlayers().stream()
             .filter(p -> p.hasPermission("voidcrypt.admin"))
             .forEach(p -> p.sendMessage(prefix + message));
-        getLogger().warning("[ALERTA] " + message);
+        getLogger().warning("[ALERT] " + message);
         if (logManager != null) {
             logManager.alert(message, "Alert");
         }
         if (notificationManager != null) {
             notificationManager.sendNotification(message);
+        }
+    }
+
+    public void auditLog(Level level, String event, String details) {
+        String logMessage = String.format("AUDIT [%s]: %s | %s", 
+            level.getName(), event, details);
+        getLogger().log(level, logMessage);
+        if (logManager != null) {
+            logManager.info(logMessage, "Audit");
         }
     }
 }

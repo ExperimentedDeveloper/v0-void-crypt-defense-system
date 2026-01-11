@@ -12,21 +12,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Módulo 3B: Analizador de Tráfico
- * Monitorea el volumen de paquetes y la carga del sistema
+ * Module 3B: Traffic Analyzer
+ * Monitors packet volume and system load
+ * Translated to English
  */
 public class TrafficAnalyzer extends PacketAdapter {
 
     private final VoidCryptPlugin plugin;
     
-    // Contadores atómicos para thread-safety
+    // Atomic counters for thread-safety
     private final AtomicInteger packetsThisSecond;
     private final AtomicInteger packetsLastSecond;
     private final AtomicLong totalPackets;
     private final AtomicInteger peakPacketsPerSecond;
     
-    // Umbrales
-    private static final int WARNING_THRESHOLD = 1000;  // Paquetes/segundo
+    // Thresholds
+    private static final int WARNING_THRESHOLD = 1000;  // Packets/second
     private static final int CRITICAL_THRESHOLD = 5000;
 
     public TrafficAnalyzer(VoidCryptPlugin plugin, ProtocolManager protocolManager) {
@@ -45,7 +46,7 @@ public class TrafficAnalyzer extends PacketAdapter {
         
         protocolManager.addPacketListener(this);
         
-        // Actualizar contador cada segundo
+        // Update counter every second
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::updateCounters, 20L, 20L);
     }
 
@@ -61,28 +62,28 @@ public class TrafficAnalyzer extends PacketAdapter {
         int current = packetsThisSecond.getAndSet(0);
         packetsLastSecond.set(current);
         
-        // Actualizar pico
+        // Update peak
         if (current > peakPacketsPerSecond.get()) {
             peakPacketsPerSecond.set(current);
         }
         
-        // Alertas de tráfico
+        // Traffic alerts
         if (current >= CRITICAL_THRESHOLD) {
-            plugin.alert("⚠ CRÍTICO: Tráfico de red extremo detectado: " + current + " pkt/s");
+            plugin.alert("CRITICAL: Extreme network traffic detected: " + current + " pkt/s");
         } else if (current >= WARNING_THRESHOLD) {
-            plugin.getLogger().warning("Tráfico elevado: " + current + " pkt/s");
+            plugin.getLogger().warning("High traffic: " + current + " pkt/s");
         }
     }
 
     /**
-     * Obtiene el volumen de paquetes del último segundo
+     * Gets packet volume from last second
      */
     public int getPacketVolume() {
         return packetsLastSecond.get();
     }
 
     /**
-     * Obtiene el TPS actual del servidor
+     * Gets current server TPS
      */
     public double getSystemLoad() {
         try {
@@ -90,13 +91,13 @@ public class TrafficAnalyzer extends PacketAdapter {
             double[] tps = Bukkit.getTPS();
             return tps.length > 0 ? tps[0] : 20.0;
         } catch (Exception e) {
-            return 20.0; // Asumir TPS normal si no está disponible
+            return 20.0; // Assume normal TPS if not available
         }
     }
 
     /**
-     * Calcula el nivel de amenaza basado en métricas
-     * @return 0.0 (normal) a 1.0 (crítico)
+     * Calculates threat level based on metrics
+     * @return 0.0 (normal) to 1.0 (critical)
      */
     public double getThreatLevel() {
         int packets = getPacketVolume();
@@ -109,7 +110,7 @@ public class TrafficAnalyzer extends PacketAdapter {
     }
 
     /**
-     * Determina el estado actual de la red
+     * Determines current network status
      */
     public NetworkStatus getNetworkStatus() {
         int packets = getPacketVolume();
@@ -134,9 +135,9 @@ public class TrafficAnalyzer extends PacketAdapter {
     }
 
     public enum NetworkStatus {
-        NORMAL,    // Verde
-        ELEVATED,  // Amarillo
-        WARNING,   // Naranja
-        CRITICAL   // Rojo
+        NORMAL,    // Green
+        ELEVATED,  // Yellow
+        WARNING,   // Orange
+        CRITICAL   // Red
     }
 }

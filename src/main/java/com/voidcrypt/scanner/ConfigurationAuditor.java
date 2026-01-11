@@ -10,8 +10,9 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Módulo 4B: Auditor de Configuración
- * Analiza server.properties en busca de configuraciones inseguras
+ * Module 4B: Configuration Auditor
+ * Analyzes server.properties for insecure configurations
+ * Translated to English
  */
 public class ConfigurationAuditor {
 
@@ -26,7 +27,7 @@ public class ConfigurationAuditor {
     }
 
     /**
-     * Audita el archivo server.properties
+     * Audits the server.properties file
      */
     public List<AuditFinding> auditServerProperties() {
         lastAuditResults.clear();
@@ -37,9 +38,9 @@ public class ConfigurationAuditor {
         if (!serverProperties.exists()) {
             lastAuditResults.add(new AuditFinding(
                 "server.properties",
-                "Archivo no encontrado",
+                "File not found",
                 Severity.WARNING,
-                "No se puede auditar la configuración del servidor"
+                "Cannot audit server configuration"
             ));
             return lastAuditResults;
         }
@@ -50,14 +51,14 @@ public class ConfigurationAuditor {
         } catch (IOException e) {
             lastAuditResults.add(new AuditFinding(
                 "server.properties",
-                "Error de lectura",
+                "Read error",
                 Severity.ERROR,
                 e.getMessage()
             ));
             return lastAuditResults;
         }
         
-        // Verificaciones de seguridad
+        // Security checks
         checkOnlineMode(props);
         checkServerPort(props);
         checkQueryEnabled(props);
@@ -67,18 +68,18 @@ public class ConfigurationAuditor {
         checkNetworkCompression(props);
         checkSpawnProtection(props);
         
-        // Log resumen
+        // Log summary
         long critical = lastAuditResults.stream()
             .filter(f -> f.severity() == Severity.CRITICAL).count();
         long warnings = lastAuditResults.stream()
             .filter(f -> f.severity() == Severity.WARNING).count();
         
         plugin.getLogger().info(String.format(
-            "Auditoría completada - Puntuación: %d/100 | Críticos: %d | Advertencias: %d",
+            "Audit completed - Score: %d/100 | Critical: %d | Warnings: %d",
             securityScore, critical, warnings));
         
         if (critical > 0) {
-            plugin.alert("¡Configuración crítica detectada! Revisa /voidcrypt status");
+            plugin.alert("Critical configuration issue detected! Check /voidcrypt status");
         }
         
         return lastAuditResults;
@@ -92,7 +93,7 @@ public class ConfigurationAuditor {
                 "online-mode",
                 "false",
                 Severity.CRITICAL,
-                "¡CRÍTICO! Servidor en modo offline. Cualquiera puede conectarse con cualquier nombre."
+                "CRITICAL! Server in offline mode. Anyone can connect with any username."
             ));
             securityScore -= 40;
         } else {
@@ -100,7 +101,7 @@ public class ConfigurationAuditor {
                 "online-mode",
                 "true",
                 Severity.OK,
-                "Autenticación de Mojang habilitada"
+                "Mojang authentication enabled"
             ));
         }
     }
@@ -113,7 +114,7 @@ public class ConfigurationAuditor {
                 "server-port",
                 port,
                 Severity.INFO,
-                "Puerto por defecto. Considerar cambiar para reducir escaneos automáticos."
+                "Default port. Consider changing to reduce automated scans."
             ));
             securityScore -= 5;
         }
@@ -127,7 +128,7 @@ public class ConfigurationAuditor {
                 "enable-query",
                 "true",
                 Severity.WARNING,
-                "Query habilitado. Puede ser usado para ataques DoS y enumeración."
+                "Query enabled. Can be used for DoS attacks and enumeration."
             ));
             securityScore -= 15;
         }
@@ -141,17 +142,17 @@ public class ConfigurationAuditor {
             if (rconPassword.isEmpty() || rconPassword.length() < 12) {
                 lastAuditResults.add(new AuditFinding(
                     "rcon",
-                    "habilitado con contraseña débil",
+                    "enabled with weak password",
                     Severity.CRITICAL,
-                    "¡CRÍTICO! RCON habilitado con contraseña débil o vacía."
+                    "CRITICAL! RCON enabled with weak or empty password."
                 ));
                 securityScore -= 30;
             } else {
                 lastAuditResults.add(new AuditFinding(
                     "rcon",
-                    "habilitado",
+                    "enabled",
                     Severity.WARNING,
-                    "RCON habilitado. Asegúrate de que el puerto esté protegido por firewall."
+                    "RCON enabled. Ensure port is protected by firewall."
                 ));
                 securityScore -= 10;
             }
@@ -166,14 +167,14 @@ public class ConfigurationAuditor {
                 "white-list",
                 "false",
                 Severity.INFO,
-                "Whitelist deshabilitada. Cualquiera puede intentar conectarse."
+                "Whitelist disabled. Anyone can attempt to connect."
             ));
         } else {
             lastAuditResults.add(new AuditFinding(
                 "white-list",
                 "true",
                 Severity.OK,
-                "Whitelist habilitada. Solo jugadores aprobados pueden conectarse."
+                "Whitelist enabled. Only approved players can connect."
             ));
             securityScore += 5; // Bonus
         }
@@ -189,7 +190,7 @@ public class ConfigurationAuditor {
                     "max-players",
                     maxPlayers,
                     Severity.INFO,
-                    "Límite alto de jugadores. Asegúrate de tener recursos suficientes."
+                    "High player limit. Ensure you have sufficient resources."
                 ));
             }
         } catch (NumberFormatException ignored) {}
@@ -205,7 +206,7 @@ public class ConfigurationAuditor {
                     "network-compression-threshold",
                     threshold,
                     Severity.WARNING,
-                    "Compresión de red deshabilitada. Mayor uso de ancho de banda."
+                    "Network compression disabled. Higher bandwidth usage."
                 ));
             }
         } catch (NumberFormatException ignored) {}
@@ -221,7 +222,7 @@ public class ConfigurationAuditor {
                     "spawn-protection",
                     "0",
                     Severity.INFO,
-                    "Sin protección de spawn. Jugadores pueden modificar el área de spawn."
+                    "No spawn protection. Players can modify spawn area."
                 ));
             }
         } catch (NumberFormatException ignored) {}
@@ -239,10 +240,10 @@ public class ConfigurationAuditor {
     public record AuditFinding(String property, String value, Severity severity, String description) {}
     
     public enum Severity {
-        OK,       // Configuración segura
-        INFO,     // Información
-        WARNING,  // Advertencia
-        CRITICAL, // Crítico - debe corregirse
-        ERROR     // Error al verificar
+        OK,       // Secure configuration
+        INFO,     // Information
+        WARNING,  // Warning
+        CRITICAL, // Critical - must be fixed
+        ERROR     // Error checking
     }
 }

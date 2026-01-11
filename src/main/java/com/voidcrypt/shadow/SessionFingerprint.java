@@ -1,13 +1,15 @@
 package com.voidcrypt.shadow;
 
+import com.voidcrypt.security.SecurityValidator;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
- * Módulo 2A: Huella digital de sesión
- * Almacena datos inmutables de la sesión para verificación
+ * Module 2A: Session Digital Fingerprint
+ * Stores immutable session data for verification
  */
 public class SessionFingerprint {
 
@@ -17,14 +19,17 @@ public class SessionFingerprint {
     private final long creationTime;
     private final int protocolVersion;
     
-    // Estado de la sesión
+    private final String entropyToken;
+    
+    // Session status
     private SessionStatus status;
     private int suspicionLevel;
 
     public SessionFingerprint(UUID playerUUID, String boundIP, int protocolVersion) {
         this.playerUUID = playerUUID;
-        this.boundIP = sanitizeIP(boundIP);
+        this.boundIP = validateAndSanitizeIP(boundIP);
         this.protocolVersion = protocolVersion;
+        this.entropyToken = SecurityValidator.generateSecureToken(8);
         this.protocolHash = generateProtocolHash();
         this.creationTime = System.currentTimeMillis();
         this.status = SessionStatus.ACTIVE;
@@ -32,15 +37,15 @@ public class SessionFingerprint {
     }
 
     /**
-     * Genera un hash único basado en UUID + IP + Protocolo
+     * Generates a unique hash based on UUID + IP + Protocol + Entropy
      */
     private String generateProtocolHash() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            String input = playerUUID.toString() + boundIP + protocolVersion + creationTime;
+            String input = playerUUID.toString() + boundIP + protocolVersion + creationTime + entropyToken;
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 8; i++) { // Solo primeros 8 bytes para brevedad
+            for (int i = 0; i < 8; i++) { // Only first 8 bytes for brevity
                 sb.append(String.format("%02x", hash[i]));
             }
             return sb.toString();
@@ -50,26 +55,34 @@ public class SessionFingerprint {
     }
 
     /**
-     * Sanitiza la IP eliminando caracteres peligrosos
-     * Regex: Solo permite dígitos y puntos para IPv4
+     * Properly validates IP using SecurityValidator
+     * Returns null for invalid IPs instead of 0.0.0.0
      */
-    private String sanitizeIP(String ip) {
-        if (ip == null) return "0.0.0.0";
-        // IPv4 validation: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$
-        String sanitized = ip.replaceAll("[^0-9.:]", "");
-        return sanitized.isEmpty() ? "0.0.0.0" : sanitized;
+    private String validateAndSanitizeIP(String ip) {
+        String validated = SecurityValidator.validateIP(ip);
+        if (validated == null) {
+            // For fingerprinting purposes, we need SOME value
+            // But mark it as suspicious
+            this.suspicionLevel = 1;
+            return "INVALID";
+        }
+        return validated;
     }
 
     /**
-     * Verifica si una IP coincide con la IP vinculada
+     * Verifies if an IP matches the bound IP
+     * Uses proper IP validation
      */
     public boolean validateIP(String currentIP) {
-        String sanitizedCurrent = sanitizeIP(currentIP);
-        return boundIP.equals(sanitizedCurrent);
+        String validatedCurrent = SecurityValidator.validateIP(currentIP);
+        if (validatedCurrent == null || "INVALID".equals(boundIP)) {
+            return false;
+        }
+        return boundIP.equals(validatedCurrent);
     }
 
     /**
-     * Incrementa el nivel de sospecha
+     * Increments suspicion level
      */
     public void incrementSuspicion(int amount) {
         this.suspicionLevel += amount;
@@ -103,9 +116,9 @@ public class SessionFingerprint {
     }
 
     public enum SessionStatus {
-        ACTIVE,           // Normal
-        SUSPICIOUS,       // Comportamiento anómalo detectado
-        UNDER_INVESTIGATION, // Siendo monitoreado
-        COMPROMISED       // Sesión comprometida
+        ACTIVE,              // Normal
+        SUSPICIOUS,          // Anomalous behavior detected
+        UNDER_INVESTIGATION, // Being monitored
+        COMPROMISED          // Session compromised
     }
 }

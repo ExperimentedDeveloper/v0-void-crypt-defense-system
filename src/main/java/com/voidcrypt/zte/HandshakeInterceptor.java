@@ -6,7 +6,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.voidcrypt.VoidCryptPlugin;
-import io.netty.buffer.Unpooled;
+import com.voidcrypt.security.SecurityValidator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -16,24 +16,31 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 /**
- * Módulo 1B: Interceptor de Handshake Zero Trust
- * Intercepta conexiones entrantes y aplica verificación criptográfica
+ * Module 1B: Zero Trust Handshake Interceptor
+ * Intercepts incoming connections and applies cryptographic verification
  */
 public class HandshakeInterceptor extends PacketAdapter {
 
     private final VoidCryptPlugin plugin;
     private final CryptographicChallenge cryptoChallenge;
     
-    // IPs verificadas exitosamente
-    private final Set<String> verifiedIPs;
+    // Successfully verified IPs with expiration timestamp
+    private final Map<String, Long> verifiedIPs;
     
-    // Contador de fallos por IP
+    // Failure count per IP
     private final Map<String, Integer> failureCount;
+    
+    private final Map<String, Long> lockedOutIPs;
     
     private static final String CHALLENGE_CHANNEL = "voidcrypt:challenge";
     private static final String RESPONSE_CHANNEL = "voidcrypt:response";
+    
+    private static final int MAX_FAILURES = 3;
+    private static final long LOCKOUT_DURATION_MS = 300_000; // 5 minutes
+    private static final long VERIFICATION_EXPIRY_MS = 600_000; // 10 minutes
 
     public HandshakeInterceptor(VoidCryptPlugin plugin, ProtocolManager protocolManager, 
                                  CryptographicChallenge cryptoChallenge) {
@@ -43,17 +50,17 @@ public class HandshakeInterceptor extends PacketAdapter {
         
         this.plugin = plugin;
         this.cryptoChallenge = cryptoChallenge;
-        this.verifiedIPs = ConcurrentHashMap.newKeySet();
+        this.verifiedIPs = new ConcurrentHashMap<>();
         this.failureCount = new ConcurrentHashMap<>();
+        this.lockedOutIPs = new ConcurrentHashMap<>();
         
         protocolManager.addPacketListener(this);
         
-        // Limpieza periódica de desafíos expirados
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             cryptoChallenge.cleanupExpiredChallenges();
-            // Limpiar IPs verificadas después de 5 minutos
-            verifiedIPs.clear();
-        }, 6000L, 6000L); // Cada 5 minutos
+            cleanupExpiredVerifications();
+            cleanupExpiredLockouts();
+        }, 6000L, 6000L); // Every 5 minutes
     }
 
     @Override
@@ -70,28 +77,40 @@ public class HandshakeInterceptor extends PacketAdapter {
     private void handleLoginStart(PacketEvent event) {
         String ip = extractIP(event);
         
-        if (ip == null) {
+        String validatedIP = SecurityValidator.validateIP(ip);
+        if (validatedIP == null) {
             event.setCancelled(true);
+            plugin.auditLog(Level.WARNING, "INVALID_IP_LOGIN", "Rejected invalid IP format");
             return;
         }
         
-        // Si ya está verificada, permitir
-        if (verifiedIPs.contains(ip)) {
-            return;
-        }
-        
-        // Verificar si tiene demasiados fallos
-        int failures = failureCount.getOrDefault(ip, 0);
-        if (failures >= 3) {
+        if (isLockedOut(validatedIP)) {
             event.setCancelled(true);
-            plugin.alert("IP bloqueada por múltiples fallos de handshake: " + ip);
+            plugin.alert("Blocked login attempt from locked out IP: " + validatedIP);
             return;
         }
         
-        // Crear nuevo desafío
-        CryptographicChallenge.ChallengeData challenge = cryptoChallenge.createChallenge(ip);
+        // If already verified and not expired, allow
+        Long verifiedTime = verifiedIPs.get(validatedIP);
+        if (verifiedTime != null && System.currentTimeMillis() - verifiedTime < VERIFICATION_EXPIRY_MS) {
+            return;
+        }
         
-        plugin.getLogger().fine("Desafío creado para " + ip + ": " + challenge.nonce());
+        // Check failure count
+        int failures = failureCount.getOrDefault(validatedIP, 0);
+        if (failures >= MAX_FAILURES) {
+            lockoutIP(validatedIP);
+            event.setCancelled(true);
+            plugin.alert("IP locked out due to multiple handshake failures: " + validatedIP);
+            return;
+        }
+        
+        // Create new challenge
+        CryptographicChallenge.ChallengeData challenge = cryptoChallenge.createChallenge(validatedIP);
+        
+        if (challenge != null) {
+            plugin.getLogger().fine("Challenge created for " + validatedIP + ": " + challenge.nonce());
+        }
     }
 
     private void handleCustomPayload(PacketEvent event) {
@@ -99,21 +118,23 @@ public class HandshakeInterceptor extends PacketAdapter {
         if (player == null) return;
         
         String ip = extractPlayerIP(player);
+        String validatedIP = SecurityValidator.validateIP(ip);
+        if (validatedIP == null) return;
         
         try {
-            // Leer el canal del paquete
+            // Read channel from packet
             String channel = event.getPacket().getStrings().readSafely(0);
             
             if (RESPONSE_CHANNEL.equals(channel)) {
-                // Leer la respuesta del cliente
+                // Read client response
                 byte[] data = event.getPacket().getByteArrays().readSafely(0);
                 if (data != null) {
                     String response = new String(data, StandardCharsets.UTF_8);
-                    processResponse(ip, response, player);
+                    processResponse(validatedIP, response, player);
                 }
             }
         } catch (Exception e) {
-            plugin.getLogger().fine("Error procesando payload: " + e.getMessage());
+            plugin.getLogger().fine("Error processing payload: " + e.getMessage());
         }
     }
 
@@ -122,21 +143,24 @@ public class HandshakeInterceptor extends PacketAdapter {
         
         switch (result) {
             case SUCCESS -> {
-                verifiedIPs.add(ip);
+                verifiedIPs.put(ip, System.currentTimeMillis());
                 failureCount.remove(ip);
-                plugin.getLogger().fine("Verificación exitosa para " + ip);
+                plugin.getLogger().fine("Verification successful for " + ip);
+                plugin.auditLog(Level.INFO, "HANDSHAKE_SUCCESS", "IP: " + ip);
             }
             case TIMEOUT -> {
                 incrementFailure(ip);
                 kickPlayer(player, "timeout");
+                plugin.auditLog(Level.WARNING, "HANDSHAKE_TIMEOUT", "IP: " + ip);
             }
             case WRONG_ANSWER, INVALID_FORMAT -> {
                 incrementFailure(ip);
-                plugin.alert("Respuesta de handshake inválida desde: " + ip);
+                plugin.alert("Invalid handshake response from: " + ip);
                 kickPlayer(player, "invalid");
+                plugin.auditLog(Level.WARNING, "HANDSHAKE_INVALID", "IP: " + ip);
             }
             case NO_CHALLENGE -> {
-                // Ignorar si no hay desafío pendiente
+                // Ignore if no pending challenge
             }
         }
     }
@@ -145,9 +169,37 @@ public class HandshakeInterceptor extends PacketAdapter {
         failureCount.merge(ip, 1, Integer::sum);
     }
 
+    private void lockoutIP(String ip) {
+        lockedOutIPs.put(ip, System.currentTimeMillis());
+        failureCount.remove(ip);
+    }
+
+    private boolean isLockedOut(String ip) {
+        Long lockoutTime = lockedOutIPs.get(ip);
+        if (lockoutTime == null) return false;
+        
+        if (System.currentTimeMillis() - lockoutTime > LOCKOUT_DURATION_MS) {
+            lockedOutIPs.remove(ip);
+            return false;
+        }
+        return true;
+    }
+
+    private void cleanupExpiredVerifications() {
+        long now = System.currentTimeMillis();
+        verifiedIPs.entrySet().removeIf(entry -> 
+            now - entry.getValue() > VERIFICATION_EXPIRY_MS);
+    }
+
+    private void cleanupExpiredLockouts() {
+        long now = System.currentTimeMillis();
+        lockedOutIPs.entrySet().removeIf(entry -> 
+            now - entry.getValue() > LOCKOUT_DURATION_MS);
+    }
+
     private void kickPlayer(Player player, String reason) {
         String message = ChatColor.translateAlternateColorCodes('&',
-            plugin.getConfig().getString("messages.kick-handshake-failed", "&cConexión rechazada."));
+            plugin.getConfig().getString("messages.kick-handshake-failed", "&cConnection rejected."));
         
         Bukkit.getScheduler().runTask(plugin, () -> player.kickPlayer(message));
     }
@@ -159,7 +211,7 @@ public class HandshakeInterceptor extends PacketAdapter {
                 return address.getAddress().getHostAddress();
             }
         } catch (Exception e) {
-            // Fallback silencioso
+            // Silent fallback
         }
         return null;
     }
@@ -173,7 +225,11 @@ public class HandshakeInterceptor extends PacketAdapter {
     }
 
     public boolean isVerified(String ip) {
-        return verifiedIPs.contains(ip);
+        String validatedIP = SecurityValidator.validateIP(ip);
+        if (validatedIP == null) return false;
+        
+        Long verifiedTime = verifiedIPs.get(validatedIP);
+        return verifiedTime != null && System.currentTimeMillis() - verifiedTime < VERIFICATION_EXPIRY_MS;
     }
 
     public int getFailureCount(String ip) {
