@@ -1,0 +1,31 @@
+name: VoidCrypt
+version: 1.0.0
+main: com.voidcrypt.VoidCryptPlugin
+api-version: "1.20"
+depend:
+  - ProtocolLib
+authors:
+  - VoidCrypt Team
+description: Sistema de Defensa VoidCrypt - Seguridad Avanzada para Servidores Minecraft
+commands:
+  voidcrypt:
+    description: Comando principal de VoidCrypt
+    usage: /<command> [subcommand]
+    permission: voidcrypt.admin
+    aliases: [vc, void, vcrypt]
+permissions:
+  voidcrypt.admin:
+    description: Acceso completo a VoidCrypt
+    default: op
+  voidcrypt.radar:
+    description: Acceso al radar de amenazas
+    default: op
+  voidcrypt.notify:
+    description: Recibir notificaciones de seguridad
+    default: op
+  voidcrypt.hud:
+    description: Ver HUD de estado en ActionBar
+    default: op
+  voidcrypt.gui:
+    description: Acceso a las interfaces gráficas
+    default: op

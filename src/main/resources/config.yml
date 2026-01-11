@@ -1,0 +1,39 @@
+# VoidCrypt Defense System - Configuración Principal
+
+void-handshake:
+  enabled: true
+  difficulty: 2 # 1 = Simple, 5 = Difícil (Coste computacional alto para bots)
+  timeout-ticks: 60 # 3 segundos
+  secret-key: "CHANGE_THIS_SECRET_KEY_NOW"
+
+shadow-session:
+  enforce-ip-lock: true
+  ban-on-swap: true
+  ban-duration-minutes: 60
+
+threat-radar:
+  map-id: 1
+  refresh-rate-ticks: 2
+  grid-color: GREEN
+  alert-flash-enabled: true
+
+integrity-scanner:
+  enabled: true
+  scan-on-startup: true
+  scan-interval-minutes: 30
+  known-good-checksums: []
+  # Ejemplo:
+  # - "EssentialsX.jar:a1b2c3d4e5f6..."
+
+phantom-ports:
+  active: true
+  auto-firewall: false # Advertencia: Requiere permisos de SO
+  honeypot-channels:
+    - "voidcrypt:port80"
+    - "voidcrypt:port443"
+    - "voidcrypt:admin"
+
+messages:
+  kick-handshake-failed: "&cConexión rechazada."
+  kick-session-corrupt: "&cSesión inválida."
+  alert-prefix: "&8[&4VoidCrypt&8] &c"
